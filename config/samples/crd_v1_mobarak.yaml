@@ -1,0 +1,12 @@
+apiVersion: crd.github.com/v1
+kind: Mobarak
+metadata:
+  labels:
+    app.kubernetes.io/name: mobarak
+    app.kubernetes.io/instance: mobarak-sample
+    app.kubernetes.io/part-of: kubebuilder-crd
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: kubebuilder-crd
+  name: mobarak-sample
+spec:
+  # TODO(user): Add fields here

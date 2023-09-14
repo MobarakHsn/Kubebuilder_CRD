@@ -1,0 +1,31 @@
+# permissions for end users to edit mobaraks.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: mobarak-editor-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: kubebuilder-crd
+    app.kubernetes.io/part-of: kubebuilder-crd
+    app.kubernetes.io/managed-by: kustomize
+  name: mobarak-editor-role
+rules:
+- apiGroups:
+  - crd.github.com
+  resources:
+  - mobaraks
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - crd.github.com
+  resources:
+  - mobaraks/status
+  verbs:
+  - get

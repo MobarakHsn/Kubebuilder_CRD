@@ -34,8 +34,9 @@ type ServiceSpec struct {
 	// +optional
 	ServiceName string `json:"serviceName,omitempty"`
 	ServiceType string `json:"serviceType"`
+	ServicePort int32  `json:"servicePort"`
 	// +optional
-	ServiceNodePort int32 `json:"servicePort,omitempty"`
+	ServiceNodePort int32 `json:"serviceNodePort,omitempty"`
 }
 
 // MobarakSpec defines the desired state of Mobarak

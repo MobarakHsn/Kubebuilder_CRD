@@ -18,8 +18,11 @@ package controller
 
 import (
 	"context"
+	"fmt"
 	crdv1 "github.com/MobarakHsn/kubebuilder_crd/api/v1"
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -50,25 +53,101 @@ func (r *MobarakReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	log.WithValues("ReqName", req.Name, "ReqNameSpace", req.Namespace)
 
 	// TODO(user): your logic here
-	var mobarakCrd crdv1.Mobarak
-	if err := r.Get(ctx, req.NamespacedName, &mobarakCrd); err != nil {
+	var customRes crdv1.Mobarak
+	if err := r.Get(ctx, req.NamespacedName, &customRes); err != nil {
 		log.Error(err, "Unable to fetch mobarakcrd")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
-
-	var childDeploys appsv1.DeploymentList
-	if err := r.List(ctx, &childDeploys, client.InNamespace(req.Namespace), client.MatchingFields{deployOwnerKey: req.Name}); err != nil {
-		log.Error(err, "unable to list child Deployments")
-		return ctrl.Result{}, err
+	fmt.Println("Mobarak fetched", req.NamespacedName)
+	var deploymentInstance appsv1.Deployment
+	deploymentName := func() string {
+		if customRes.Spec.DeploymentName == "" {
+			return customRes.Name
+		} else {
+			return customRes.Spec.DeploymentName
+		}
+	}()
+	nsname := client.ObjectKey{
+		Namespace: req.Namespace,
+		Name:      deploymentName,
 	}
+	if err := r.Get(ctx, nsname, &deploymentInstance); err != nil {
+		if errors.IsNotFound(err) {
+			fmt.Println("Could not find existing deployment for ", customRes.Name, ", creating one...")
+			err := r.Create(ctx, NewDeployment(&customRes, deploymentName))
+			if err != nil {
+				cnt := int32(0)
+				customCopy := customRes.DeepCopy()
+				customCopy.Status.AvailableReplicas = &cnt
+				if err := r.Update(ctx, customCopy); err != nil {
+					fmt.Errorf("Error updating Mobarak %s\n", err)
+					return ctrl.Result{}, err
+				}
+				fmt.Errorf("Error while creating deployment %s\n", err)
+				return ctrl.Result{}, err
+			} else {
+				fmt.Printf("%s Deployments Created...\n", customRes.Name)
+			}
+		} else {
+			fmt.Errorf("Error fetching deployment %s\n", err)
+			return ctrl.Result{}, err
+		}
+	} else {
+		if customRes.Spec.Replicas != nil && *customRes.Spec.Replicas != *deploymentInstance.Spec.Replicas {
+			fmt.Println(*customRes.Spec.Replicas, *deploymentInstance.Spec.Replicas)
+			fmt.Println("Deployment replica miss match.....updating")
+			cnt := *deploymentInstance.Spec.Replicas
+			deploymentInstance.Spec.Replicas = customRes.Spec.Replicas
+			if err := r.Update(ctx, &deploymentInstance); err != nil {
+				fmt.Errorf("Error updating deployment %s\n", err)
+				return ctrl.Result{}, err
+			} else {
+				customCopy := customRes.DeepCopy()
+				customCopy.Status.AvailableReplicas = &cnt
+				if err := r.Update(ctx, customCopy); err != nil {
+					fmt.Errorf("Error updating Mobarak %s\n", err)
+					return ctrl.Result{}, err
+				}
+			}
+			fmt.Println("Deployment updated")
+		}
+	}
+	var serviceInstance corev1.Service
+	serviceName := func() string {
+		if customRes.Spec.Service.ServiceName == "" {
+			return customRes.Name
+		} else {
+			return customRes.Spec.Service.ServiceName
+		}
+	}()
+	nsname = client.ObjectKey{
+		Namespace: req.Namespace,
+		Name:      serviceName,
+	}
+	if err := r.Get(ctx, nsname, &serviceInstance); err != nil {
+		if errors.IsNotFound(err) {
+			fmt.Println("Could not find existing service for ", customRes.Name, ", creating one...")
+			err := r.Create(ctx, NewService(&customRes, serviceName))
+			if err != nil {
+				fmt.Errorf("Error while creating deployment %s\n", err)
+				return ctrl.Result{}, err
+			} else {
+				fmt.Printf("%s Deployments Created...\n", customRes.Name)
+			}
+		} else {
+			fmt.Errorf("Error fetching deployment %s\n", err)
+			return ctrl.Result{}, err
+		}
+	}
+	fmt.Println("reconciliation done")
 	return ctrl.Result{}, nil
 }
 
 var (
-	deployOwnerKey = ".metadata.controller"
-	svcOwnerKey    = ".metadata.controller"
-	apiGVStr       = crdv1.GroupVersion.String()
-	ourKind        = "Mobarak"
+// deployOwnerKey = ".metadata.controller"
+// svcOwnerKey    = ".metadata.controller"
+// apiGVStr       = crdv1.GroupVersion.String()
+// ourKind        = "Mobarak"
 )
 
 // SetupWithManager sets up the controller with the Manager.

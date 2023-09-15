@@ -2,11 +2,20 @@ apiVersion: crd.github.com/v1
 kind: Mobarak
 metadata:
   labels:
-    app.kubernetes.io/name: mobarak
-    app.kubernetes.io/instance: mobarak-sample
+    app.kubernetes.io/name: customr
+    app.kubernetes.io/instance: customr-sample
     app.kubernetes.io/part-of: kubebuilder-crd
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/created-by: kubebuilder-crd
-  name: mobarak-sample
+  name: customr-sample
 spec:
-  # TODO(user): Add fields here
+  deploymentName: test444444444
+  replicas: 3
+  container:
+    image: "sayedppqq/api-server"
+    port: 8080
+  service:
+    serviceName: "sayediiiii"
+    serviceType: "NodePort"
+    servicePort: 8080
+    serviceNodePort: 30001

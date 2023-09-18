@@ -20,18 +20,19 @@ import (
 	"context"
 	"fmt"
 	crdv1 "github.com/MobarakHsn/kubebuilder_crd/api/v1"
+	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 // MobarakReconciler reconciles a Mobarak object
 type MobarakReconciler struct {
 	client.Client
+	Log    logr.Logger
 	Scheme *runtime.Scheme
 }
 
@@ -49,13 +50,15 @@ type MobarakReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.16.0/pkg/reconcile
 func (r *MobarakReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := log.FromContext(ctx)
-	log.WithValues("ReqName", req.Name, "ReqNameSpace", req.Namespace)
-
+	//log := log.FromContext(ctx)
+	//log := r.Log.WithValues("ReqName", req.Name, "ReqNameSpace", req.Namespace)
+	//fmt.Println(log)
 	// TODO(user): your logic here
+	defer fmt.Println("reconciliation done")
 	var customRes crdv1.Mobarak
 	if err := r.Get(ctx, req.NamespacedName, &customRes); err != nil {
-		log.Error(err, "Unable to fetch mobarakcrd")
+		fmt.Println(err, "Unable to fetch mobarakcrd")
+		//log.Error(err, "Unable to fetch mobarakcrd")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 	fmt.Println("Mobarak fetched", req.NamespacedName)
@@ -80,16 +83,16 @@ func (r *MobarakReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 				customCopy := customRes.DeepCopy()
 				customCopy.Status.AvailableReplicas = &cnt
 				if err := r.Update(ctx, customCopy); err != nil {
-					fmt.Errorf("Error updating Mobarak %s\n", err)
+					fmt.Printf("Error updating Mobarak %s\n", err)
 					return ctrl.Result{}, err
 				}
-				fmt.Errorf("Error while creating deployment %s\n", err)
+				fmt.Printf("Error while creating deployment %s\n", err)
 				return ctrl.Result{}, err
 			} else {
 				fmt.Printf("%s Deployments Created...\n", customRes.Name)
 			}
 		} else {
-			fmt.Errorf("Error fetching deployment %s\n", err)
+			fmt.Printf("Error fetching deployment %s\n", err)
 			return ctrl.Result{}, err
 		}
 	} else {
@@ -99,13 +102,13 @@ func (r *MobarakReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 			cnt := *deploymentInstance.Spec.Replicas
 			deploymentInstance.Spec.Replicas = customRes.Spec.Replicas
 			if err := r.Update(ctx, &deploymentInstance); err != nil {
-				fmt.Errorf("Error updating deployment %s\n", err)
+				fmt.Printf("Error updating deployment %s\n", err)
 				return ctrl.Result{}, err
 			} else {
 				customCopy := customRes.DeepCopy()
 				customCopy.Status.AvailableReplicas = &cnt
 				if err := r.Update(ctx, customCopy); err != nil {
-					fmt.Errorf("Error updating Mobarak %s\n", err)
+					fmt.Printf("Error updating Mobarak %s\n", err)
 					return ctrl.Result{}, err
 				}
 			}
@@ -129,17 +132,17 @@ func (r *MobarakReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 			fmt.Println("Could not find existing service for ", customRes.Name, ", creating one...")
 			err := r.Create(ctx, NewService(&customRes, serviceName))
 			if err != nil {
-				fmt.Errorf("Error while creating deployment %s\n", err)
+				fmt.Printf("Error while creating deployment %s\n", err)
 				return ctrl.Result{}, err
 			} else {
 				fmt.Printf("%s Deployments Created...\n", customRes.Name)
 			}
 		} else {
-			fmt.Errorf("Error fetching deployment %s\n", err)
+			fmt.Printf("Error fetching deployment %s\n", err)
 			return ctrl.Result{}, err
 		}
 	}
-	fmt.Println("reconciliation done")
+	//controllerutil.SetControllerReference()
 	return ctrl.Result{}, nil
 }
 
@@ -154,5 +157,7 @@ var (
 func (r *MobarakReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&crdv1.Mobarak{}).
+		Owns(&appsv1.Deployment{}).
+		Owns(&corev1.Service{}).
 		Complete(r)
 }

@@ -10,7 +10,7 @@ metadata:
   name: customr-sample
 spec:
   deploymentName: test444444444
-  replicas: 3
+  replicas: 2
   container:
     image: "sayedppqq/api-server"
     port: 8080

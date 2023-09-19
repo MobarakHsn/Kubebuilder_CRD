@@ -24,9 +24,13 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
 // MobarakReconciler reconciles a Mobarak object
@@ -147,17 +151,54 @@ func (r *MobarakReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 }
 
 var (
-// deployOwnerKey = ".metadata.controller"
-// svcOwnerKey    = ".metadata.controller"
-// apiGVStr       = crdv1.GroupVersion.String()
-// ourKind        = "Mobarak"
+	customDeployNameField = ".spec.deploymentName"
+	// svcOwnerKey    = ".metadata.controller"
+	// apiGVStr       = crdv1.GroupVersion.String()
+	// ourKind        = "Mobarak"
 )
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *MobarakReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &crdv1.Mobarak{}, customDeployNameField, func(rawObj client.Object) []string {
+		// Extract the ConfigMap name from the ConfigDeployment Spec, if one is provided
+		//fmt.Println("Here")
+		configDeployment := rawObj.(*crdv1.Mobarak)
+		if configDeployment.Spec.DeploymentName == "" {
+			return nil
+		}
+		return []string{configDeployment.Spec.DeploymentName}
+	}); err != nil {
+		return err
+	}
+
+	handlerForDeployment := handler.EnqueueRequestsFromMapFunc(func(ctx context.Context, deployment client.Object) []reconcile.Request {
+		//fmt.Println("There")
+		attachedCustoms := &crdv1.MobarakList{}
+		listOps := &client.ListOptions{
+			FieldSelector: fields.OneTermEqualSelector(customDeployNameField, deployment.GetName()),
+			Namespace:     deployment.GetNamespace(),
+		}
+		err := r.List(context.TODO(), attachedCustoms, listOps)
+		if err != nil {
+			return []reconcile.Request{}
+		}
+		requests := make([]reconcile.Request, len(attachedCustoms.Items))
+		for i, item := range attachedCustoms.Items {
+			requests[i] = reconcile.Request{
+				NamespacedName: types.NamespacedName{
+					Name:      item.GetName(),
+					Namespace: item.GetNamespace(),
+				},
+			}
+		}
+		return requests
+	})
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&crdv1.Mobarak{}).
-		Owns(&appsv1.Deployment{}).
 		Owns(&corev1.Service{}).
+		Watches(
+			&appsv1.Deployment{},
+			handlerForDeployment,
+		).
 		Complete(r)
 }

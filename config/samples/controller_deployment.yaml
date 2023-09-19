@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mobarak-controller
+  namespace: kubebuilder-test
+spec:
+  selector:
+    matchLabels:
+      app: mobarak-controller
+  template:
+    metadata:
+      labels:
+        app: mobarak-controller
+    spec:
+      containers:
+        - name: mobarak-controller
+          image: mobarak9239/kubebuilder-crd:1.0.0
+          ports:
+            - containerPort: 8083

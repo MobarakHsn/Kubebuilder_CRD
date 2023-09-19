@@ -7,16 +7,15 @@ metadata:
     app.kubernetes.io/part-of: kubebuilder-crd
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/created-by: kubebuilder-crd
-  name: mobarak-sample
-  namespace: kubebuilder-test
+  name: mobarak-sample1
 spec:
-  deploymentName: api-server
-  replicas: 2
+  deploymentName: api-server1
+  replicas: 4
   container:
     image: "mobarak9239/api-server:latest"
     port: 8081
   service:
-    serviceName: "api-server"
+    serviceName: "api-server1"
     serviceType: "NodePort"
     servicePort: 8081
 #    serviceNodePort: 30001

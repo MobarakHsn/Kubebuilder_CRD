@@ -23,19 +23,20 @@ func trim(deploymentName string) string {
 // SetupWithManager sets up the controller with the Manager.
 func (r *BookServerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &bookserverapi.BookServer{}, customDeployNameField, func(rawObj client.Object) []string {
-		bookServer := rawObj.(*bookserverapi.BookServer)
-		if bookServer.DeploymentName() == "" {
+		configDeployment := rawObj.(*bookserverapi.BookServer)
+		if configDeployment.Spec.DeploymentName == "" {
 			return nil
 		}
-		return []string{bookServer.DeploymentName()}
+		return []string{configDeployment.Spec.DeploymentName}
 	}); err != nil {
 		return err
 	}
 
 	handlerForDeployment := handler.EnqueueRequestsFromMapFunc(func(ctx context.Context, deployment client.Object) []reconcile.Request {
+		//fmt.Println("There")
 		attachedCustoms := &bookserverapi.BookServerList{}
 		listOps := &client.ListOptions{
-			FieldSelector: fields.OneTermEqualSelector(customDeployNameField, trim(deployment.GetName())),
+			FieldSelector: fields.OneTermEqualSelector(customDeployNameField, deployment.GetName()),
 			Namespace:     deployment.GetNamespace(),
 		}
 		err := r.Client.List(context.TODO(), attachedCustoms, listOps)
@@ -64,5 +65,5 @@ func (r *BookServerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 }
 
 var (
-	customDeployNameField = ".metadata.name"
+	customDeployNameField = ".spec.deploymentName"
 )

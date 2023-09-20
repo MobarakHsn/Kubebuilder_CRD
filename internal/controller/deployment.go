@@ -23,13 +23,6 @@ func (r *BookServerReconciler) EnsureDeployment() (ctrl.Result, error) {
 			deployment = r.NewDeployment()
 			err := r.Client.Create(r.ctx, deployment)
 			if err != nil {
-				cnt := int32(0)
-				customCopy := r.bookServer.DeepCopy()
-				customCopy.Status.AvailableReplicas = &cnt
-				if err := r.Client.Update(r.ctx, customCopy); err != nil {
-					fmt.Printf("Error updating BookServer %s\n", err)
-					return ctrl.Result{}, err
-				}
 				fmt.Printf("Error while creating deployment %s\n", err)
 				return ctrl.Result{}, err
 			} else {
@@ -43,18 +36,10 @@ func (r *BookServerReconciler) EnsureDeployment() (ctrl.Result, error) {
 		if r.bookServer.Spec.Replicas != nil && *r.bookServer.Spec.Replicas != *deployment.Spec.Replicas {
 			fmt.Println(*r.bookServer.Spec.Replicas, *deployment.Spec.Replicas)
 			fmt.Println("Deployment replica miss match.....updating")
-			cnt := *deployment.Spec.Replicas
 			deployment.Spec.Replicas = r.bookServer.Spec.Replicas
 			if err := r.Client.Update(r.ctx, deployment); err != nil {
 				fmt.Printf("Error updating deployment %s\n", err)
 				return ctrl.Result{}, err
-			} else {
-				customCopy := r.bookServer.DeepCopy()
-				customCopy.Status.AvailableReplicas = &cnt
-				if err := r.Client.Update(r.ctx, customCopy); err != nil {
-					fmt.Printf("Error updating BookServer %s\n", err)
-					return ctrl.Result{}, err
-				}
 			}
 			fmt.Println("Deployment updated")
 		}

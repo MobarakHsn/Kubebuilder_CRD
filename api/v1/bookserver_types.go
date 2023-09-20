@@ -42,7 +42,8 @@ type ServiceSpec struct {
 type BookServerSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-
+	// +optional
+	DeploymentName string `json:"deploymentName,omitempty"`
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 	// DeploymentName represents the name of the deployment we will create using CustomCrd

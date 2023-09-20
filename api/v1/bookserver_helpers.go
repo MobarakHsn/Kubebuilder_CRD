@@ -9,5 +9,5 @@ func (b *BookServer) DeploymentName() string {
 }
 
 func (b *BookServer) ServiceName() string {
-	return strings.Join([]string{b.Name, "deployment"}, "-")
+	return strings.Join([]string{b.Name, "service"}, "-")
 }

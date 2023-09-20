@@ -53,14 +53,20 @@ func (r *BookServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	// set up operator logger with resource key
 	r.Log = ctrl.Log.WithValues("BookServer", req.NamespacedName)
 	r.ctx = ctx
-
 	// get bookserver and ensure it exists
-	fmt.Println(r.Log.Enabled())
 	bookServer := &bookserverapi.BookServer{}
 	if err := r.Client.Get(ctx, req.NamespacedName, bookServer); err != nil {
 		fmt.Printf("Unable to Get BookServer %s/%s\n", req.Namespace, req.Name)
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
+	if bookServer.Spec.DeploymentName != bookServer.DeploymentName() {
+		bookServer.Spec.DeploymentName = bookServer.DeploymentName()
+		if err := r.Client.Update(ctx, bookServer); err != nil {
+			return ctrl.Result{}, err
+		}
+		fmt.Println("Book server updated")
+	}
+
 	r.bookServer = bookServer
 	fmt.Println("BookServer fetched", req.NamespacedName)
 	if result, err := r.EnsureDeployment(); err != nil {

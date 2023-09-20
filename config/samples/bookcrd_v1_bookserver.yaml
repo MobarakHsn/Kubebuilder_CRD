@@ -10,7 +10,7 @@ metadata:
   name: bookserver-sample
   namespace: kubebuilder-test
 spec:
-  replicas: 2
+  replicas: 1
   container:
     image: "mobarak9239/api-server:latest"
     port: 8081

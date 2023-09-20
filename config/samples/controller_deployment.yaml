@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mobarak-controller
+  name: bookserver-controller
   namespace: kubebuilder-test
 spec:
   selector:
     matchLabels:
-      app: mobarak-controller
+      app: bookserver-controller
   template:
     metadata:
       labels:
-        app: mobarak-controller
+        app: bookserver-controller
     spec:
       containers:
-        - name: mobarak-controller
+        - name: bookserver-controller
           image: mobarak9239/kubebuilder-crd:1.0.0
           ports:
             - containerPort: 8083

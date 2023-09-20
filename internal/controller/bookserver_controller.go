@@ -19,8 +19,9 @@ package controller
 import (
 	"context"
 	"fmt"
-	bookserverapi "github.com/MobarakHsn/kubebuilder_crd/api/v1"
 	"github.com/go-logr/logr"
+
+	bookserverapi "github.com/MobarakHsn/kubebuilder-crd/api/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -35,9 +36,9 @@ type BookServerReconciler struct {
 	bookServer *bookserverapi.BookServer
 }
 
-//+kubebuilder:rbac:groups=crd.github.com,resources=mobaraks,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=crd.github.com,resources=mobaraks/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=crd.github.com,resources=mobaraks/finalizers,verbs=update
+//+kubebuilder:rbac:groups=bookcrd.github.com,resources=bookservers,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=bookcrd.github.com,resources=bookservers/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=bookcrd.github.com,resources=bookservers/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -54,9 +55,10 @@ func (r *BookServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	r.ctx = ctx
 
 	// get bookserver and ensure it exists
+	fmt.Println(r.Log.Enabled())
 	bookServer := &bookserverapi.BookServer{}
 	if err := r.Client.Get(ctx, req.NamespacedName, bookServer); err != nil {
-		r.Log.Error(err, fmt.Sprintf("Unable to Get BookServer %s/%s", req.Namespace, req.Name))
+		fmt.Printf("Unable to Get BookServer %s/%s\n", req.Namespace, req.Name)
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 	r.bookServer = bookServer

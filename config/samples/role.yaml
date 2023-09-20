@@ -23,7 +23,7 @@ rules:
       - patch
       - update
       - watch
-  - apiGroups: [ "crd.github.com" ]
+  - apiGroups: [ "bookcrd.github.com" ]
     resources: [ "bookservers" ]
     verbs:
       - create

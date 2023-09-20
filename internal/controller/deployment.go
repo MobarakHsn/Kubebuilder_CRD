@@ -2,7 +2,7 @@ package controller
 
 import (
 	"fmt"
-	bookserverapi "github.com/MobarakHsn/kubebuilder_crd/api/v1"
+	bookserverapi "github.com/MobarakHsn/kubebuilder-crd/api/v1"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"

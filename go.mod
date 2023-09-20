@@ -1,4 +1,4 @@
-module github.com/MobarakHsn/kubebuilder_crd
+module github.com/MobarakHsn/kubebuilder-crd
 
 go 1.20
 

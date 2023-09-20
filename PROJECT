@@ -6,15 +6,15 @@ domain: github.com
 layout:
 - go.kubebuilder.io/v4
 projectName: kubebuilder-crd
-repo: github.com/MobarakHsn/kubebuilder_crd
+repo: github.com/MobarakHsn/kubebuilder-crd
 resources:
 - api:
     crdVersion: v1
     namespaced: true
   controller: true
   domain: github.com
-  group: crd
-  kind: Mobarak
-  path: github.com/MobarakHsn/kubebuilder_crd/api/v1
+  group: bookcrd
+  kind: BookServer
+  path: github.com/MobarakHsn/kubebuilder-crd/api/v1
   version: v1
 version: "3"

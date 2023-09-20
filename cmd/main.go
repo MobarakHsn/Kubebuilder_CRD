@@ -89,11 +89,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controller.MobarakReconciler{
+	if err = (&controller.BookServerReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
+		Log:    setupLog,
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "Mobarak")
+		setupLog.Error(err, "unable to create controller", "controller", "BookServer")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder

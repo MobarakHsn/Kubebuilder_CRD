@@ -19,25 +19,22 @@ package controller
 import (
 	"context"
 	"fmt"
-	crdv1 "github.com/MobarakHsn/kubebuilder_crd/api/v1"
+	bookserverapi "github.com/MobarakHsn/kubebuilder_crd/api/v1"
 	"github.com/go-logr/logr"
-	appsv1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
+	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/handler"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
-// MobarakReconciler reconciles a Mobarak object
-type MobarakReconciler struct {
-	client.Client
-	Log    logr.Logger
-	Scheme *runtime.Scheme
+// BookServerReconciler reconciles a BookServer object
+type BookServerReconciler struct {
+	client     client.Client
+	log        logr.Logger
+	ctx        context.Context
+	Scheme     *runtime.Scheme
+	bookServer *bookserverapi.BookServer
 }
 
 //+kubebuilder:rbac:groups=crd.github.com,resources=mobaraks,verbs=get;list;watch;create;update;patch;delete
@@ -47,84 +44,32 @@ type MobarakReconciler struct {
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
 // TODO(user): Modify the Reconcile function to compare the state specified by
-// the Mobarak object against the actual cluster state, and then
+// the BookServer object against the actual cluster state, and then
 // perform operations to make the cluster state reflect the state specified by
 // the user.
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.16.0/pkg/reconcile
-func (r *MobarakReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	//log := log.FromContext(ctx)
-	//log := r.Log.WithValues("ReqName", req.Name, "ReqNameSpace", req.Namespace)
-	//fmt.Println(log)
-	// TODO(user): your logic here
-	defer fmt.Println("reconciliation done")
-	var customRes crdv1.Mobarak
-	if err := r.Get(ctx, req.NamespacedName, &customRes); err != nil {
-		fmt.Println(err, "Unable to fetch mobarakcrd")
-		//log.Error(err, "Unable to fetch mobarakcrd")
+func (r *BookServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	// set up operator logger with resource key
+	r.log = ctrl.Log.WithValues("BookServer", req.NamespacedName)
+	r.ctx = ctx
+
+	// get bookserver and ensure it exists
+	bookServer := &bookserverapi.BookServer{}
+	if err := r.client.Get(ctx, req.NamespacedName, bookServer); err != nil {
+		r.log.Error(err, fmt.Sprintf("Unable to Get BookServer %s/%s", req.Namespace, req.Name))
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
-	fmt.Println("Mobarak fetched", req.NamespacedName)
-	var deploymentInstance appsv1.Deployment
-	deploymentName := func() string {
-		if customRes.Spec.DeploymentName == "" {
-			return customRes.Name
-		} else {
-			return customRes.Spec.DeploymentName
-		}
-	}()
-	nsname := client.ObjectKey{
-		Namespace: req.Namespace,
-		Name:      deploymentName,
-	}
-	if err := r.Get(ctx, nsname, &deploymentInstance); err != nil {
-		if errors.IsNotFound(err) {
-			fmt.Println("Could not find existing deployment for ", customRes.Name, ", creating one...")
-			err := r.Create(ctx, NewDeployment(&customRes, deploymentName))
-			if err != nil {
-				cnt := int32(0)
-				customCopy := customRes.DeepCopy()
-				customCopy.Status.AvailableReplicas = &cnt
-				if err := r.Update(ctx, customCopy); err != nil {
-					fmt.Printf("Error updating Mobarak %s\n", err)
-					return ctrl.Result{}, err
-				}
-				fmt.Printf("Error while creating deployment %s\n", err)
-				return ctrl.Result{}, err
-			} else {
-				fmt.Printf("%s Deployments Created...\n", customRes.Name)
-			}
-		} else {
-			fmt.Printf("Error fetching deployment %s\n", err)
-			return ctrl.Result{}, err
-		}
-	} else {
-		if customRes.Spec.Replicas != nil && *customRes.Spec.Replicas != *deploymentInstance.Spec.Replicas {
-			fmt.Println(*customRes.Spec.Replicas, *deploymentInstance.Spec.Replicas)
-			fmt.Println("Deployment replica miss match.....updating")
-			cnt := *deploymentInstance.Spec.Replicas
-			deploymentInstance.Spec.Replicas = customRes.Spec.Replicas
-			if err := r.Update(ctx, &deploymentInstance); err != nil {
-				fmt.Printf("Error updating deployment %s\n", err)
-				return ctrl.Result{}, err
-			} else {
-				customCopy := customRes.DeepCopy()
-				customCopy.Status.AvailableReplicas = &cnt
-				if err := r.Update(ctx, customCopy); err != nil {
-					fmt.Printf("Error updating Mobarak %s\n", err)
-					return ctrl.Result{}, err
-				}
-			}
-			fmt.Println("Deployment updated")
-		}
-	}
-	var serviceInstance corev1.Service
+	r.bookServer = bookServer
+	fmt.Println("BookServer fetched", req.NamespacedName)
+
+	var serviceInstance core.Service
 	serviceName := func() string {
-		if customRes.Spec.Service.ServiceName == "" {
-			return customRes.Name
+		if bookServer.Spec.Service.ServiceName == "" {
+			return bookServer.Name
 		} else {
-			return customRes.Spec.Service.ServiceName
+			return bookServer.Spec.Service.ServiceName
 		}
 	}()
 	nsname = client.ObjectKey{
@@ -133,13 +78,13 @@ func (r *MobarakReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 	if err := r.Get(ctx, nsname, &serviceInstance); err != nil {
 		if errors.IsNotFound(err) {
-			fmt.Println("Could not find existing service for ", customRes.Name, ", creating one...")
-			err := r.Create(ctx, NewService(&customRes, serviceName))
+			fmt.Println("Could not find existing service for ", bookServer.Name, ", creating one...")
+			err := r.Create(ctx, NewService(&bookServer, serviceName))
 			if err != nil {
 				fmt.Printf("Error while creating deployment %s\n", err)
 				return ctrl.Result{}, err
 			} else {
-				fmt.Printf("%s Deployments Created...\n", customRes.Name)
+				fmt.Printf("%s Deployments Created...\n", bookServer.Name)
 			}
 		} else {
 			fmt.Printf("Error fetching deployment %s\n", err)
@@ -153,52 +98,6 @@ func (r *MobarakReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 var (
 	customDeployNameField = ".spec.deploymentName"
 	// svcOwnerKey    = ".metadata.controller"
-	// apiGVStr       = crdv1.GroupVersion.String()
-	// ourKind        = "Mobarak"
+	// apiGVStr       = bookserverapi.GroupVersion.String()
+	// ourKind        = "BookServer"
 )
-
-// SetupWithManager sets up the controller with the Manager.
-func (r *MobarakReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &crdv1.Mobarak{}, customDeployNameField, func(rawObj client.Object) []string {
-		// Extract the ConfigMap name from the ConfigDeployment Spec, if one is provided
-		//fmt.Println("Here")
-		configDeployment := rawObj.(*crdv1.Mobarak)
-		if configDeployment.Spec.DeploymentName == "" {
-			return nil
-		}
-		return []string{configDeployment.Spec.DeploymentName}
-	}); err != nil {
-		return err
-	}
-
-	handlerForDeployment := handler.EnqueueRequestsFromMapFunc(func(ctx context.Context, deployment client.Object) []reconcile.Request {
-		//fmt.Println("There")
-		attachedCustoms := &crdv1.MobarakList{}
-		listOps := &client.ListOptions{
-			FieldSelector: fields.OneTermEqualSelector(customDeployNameField, deployment.GetName()),
-			Namespace:     deployment.GetNamespace(),
-		}
-		err := r.List(context.TODO(), attachedCustoms, listOps)
-		if err != nil {
-			return []reconcile.Request{}
-		}
-		requests := make([]reconcile.Request, len(attachedCustoms.Items))
-		for i, item := range attachedCustoms.Items {
-			requests[i] = reconcile.Request{
-				NamespacedName: types.NamespacedName{
-					Name:      item.GetName(),
-					Namespace: item.GetNamespace(),
-				},
-			}
-		}
-		return requests
-	})
-	return ctrl.NewControllerManagedBy(mgr).
-		For(&crdv1.Mobarak{}).
-		Owns(&corev1.Service{}).
-		Watches(
-			&appsv1.Deployment{},
-			handlerForDeployment,
-		).
-		Complete(r)
-}

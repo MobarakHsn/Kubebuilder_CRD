@@ -39,8 +39,8 @@ type ServiceSpec struct {
 	ServiceNodePort int32 `json:"serviceNodePort,omitempty"`
 }
 
-// MobarakSpec defines the desired state of Mobarak
-type MobarakSpec struct {
+// BookServerSpec defines the desired state of BookServer
+type BookServerSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
@@ -58,8 +58,8 @@ type MobarakSpec struct {
 	Service ServiceSpec `json:"service,omitempty"`
 }
 
-// MobarakStatus defines the observed state of Mobarak
-type MobarakStatus struct {
+// BookServerStatus defines the observed state of BookServer
+type BookServerStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
@@ -70,24 +70,24 @@ type MobarakStatus struct {
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
-// Mobarak is the Schema for the mobaraks API
-type Mobarak struct {
+// BookServer is the Schema for the mobaraks API
+type BookServer struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   MobarakSpec   `json:"spec,omitempty"`
-	Status MobarakStatus `json:"status,omitempty"`
+	Spec   BookServerSpec   `json:"spec,omitempty"`
+	Status BookServerStatus `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 
-// MobarakList contains a list of Mobarak
-type MobarakList struct {
+// BookServerList contains a list of BookServer
+type BookServerList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Mobarak `json:"items"`
+	Items           []BookServer `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&Mobarak{}, &MobarakList{})
+	SchemeBuilder.Register(&BookServer{}, &BookServerList{})
 }

@@ -2,57 +2,56 @@ package controller
 
 import (
 	"fmt"
-	crdv1 "github.com/MobarakHsn/kubebuilder_crd/api/v1"
+	bookserverapi "github.com/MobarakHsn/kubebuilder_crd/api/v1"
 	apps "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
+	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-func (r *BookServerReconciler) EnsureDeployment() error {
+func (r *BookServerReconciler) EnsureDeployment() (ctrl.Result, error) {
 	deployment := &apps.Deployment{}
-	deploymentName := bookServer.DeploymentName()
 
-	if err := r.client.Get(ctx, types.NamespacedName{
-		Namespace: bookServer.Namespace,
-		Name:      deploymentName,
+	if err := r.Client.Get(r.ctx, types.NamespacedName{
+		Namespace: r.bookServer.Namespace,
+		Name:      r.bookServer.DeploymentName(),
 	}, deployment); err != nil {
 		if errors.IsNotFound(err) {
-			fmt.Println("Could not find existing deployment for ", bookServer.Name, ", creating one...")
-			deployment = r.NewDeployment(deploymentName)
-			err := r.client.Create(ctx, deployment)
+			fmt.Println("Could not find existing deployment for ", r.bookServer.Name, ", creating one...")
+			deployment = r.NewDeployment()
+			err := r.Client.Create(r.ctx, deployment)
 			if err != nil {
 				cnt := int32(0)
-				customCopy := bookServer.DeepCopy()
+				customCopy := r.bookServer.DeepCopy()
 				customCopy.Status.AvailableReplicas = &cnt
-				if err := r.client.Update(ctx, customCopy); err != nil {
+				if err := r.Client.Update(r.ctx, customCopy); err != nil {
 					fmt.Printf("Error updating BookServer %s\n", err)
 					return ctrl.Result{}, err
 				}
 				fmt.Printf("Error while creating deployment %s\n", err)
 				return ctrl.Result{}, err
 			} else {
-				fmt.Printf("%s Deployments Created...\n", bookServer.Name)
+				fmt.Printf("%s Deployments Created...\n", r.bookServer.Name)
 			}
 		} else {
 			fmt.Printf("Error fetching deployment %s\n", err)
 			return ctrl.Result{}, err
 		}
 	} else {
-		if bookServer.Spec.Replicas != nil && *bookServer.Spec.Replicas != *deployment.Spec.Replicas {
-			fmt.Println(*bookServer.Spec.Replicas, *deployment.Spec.Replicas)
+		if r.bookServer.Spec.Replicas != nil && *r.bookServer.Spec.Replicas != *deployment.Spec.Replicas {
+			fmt.Println(*r.bookServer.Spec.Replicas, *deployment.Spec.Replicas)
 			fmt.Println("Deployment replica miss match.....updating")
 			cnt := *deployment.Spec.Replicas
-			deployment.Spec.Replicas = bookServer.Spec.Replicas
-			if err := r.client.Update(ctx, deployment); err != nil {
+			deployment.Spec.Replicas = r.bookServer.Spec.Replicas
+			if err := r.Client.Update(r.ctx, deployment); err != nil {
 				fmt.Printf("Error updating deployment %s\n", err)
 				return ctrl.Result{}, err
 			} else {
-				customCopy := bookServer.DeepCopy()
+				customCopy := r.bookServer.DeepCopy()
 				customCopy.Status.AvailableReplicas = &cnt
-				if err := r.client.Update(ctx, customCopy); err != nil {
+				if err := r.Client.Update(r.ctx, customCopy); err != nil {
 					fmt.Printf("Error updating BookServer %s\n", err)
 					return ctrl.Result{}, err
 				}
@@ -60,40 +59,41 @@ func (r *BookServerReconciler) EnsureDeployment() error {
 			fmt.Println("Deployment updated")
 		}
 	}
+	return ctrl.Result{}, nil
 }
 
-func (r *BookServerReconciler) NewDeployment(deploymentName string) *apps.Deployment {
+func (r *BookServerReconciler) NewDeployment() *apps.Deployment {
 	labels := map[string]string{
 		"app":  r.bookServer.Name,
 		"kind": "BookServer",
 	}
 	return &apps.Deployment{
-		TypeMeta: metav1.TypeMeta{
+		TypeMeta: meta.TypeMeta{
 			Kind: "Deployment",
 		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      deploymentName,
+		ObjectMeta: meta.ObjectMeta{
+			Name:      r.bookServer.DeploymentName(),
 			Namespace: r.bookServer.Namespace,
-			OwnerReferences: []metav1.OwnerReference{
-				*metav1.NewControllerRef(r.bookServer, crdv1.GroupVersion.WithKind("BookServer")),
+			OwnerReferences: []meta.OwnerReference{
+				*meta.NewControllerRef(r.bookServer, bookserverapi.GroupVersion.WithKind("BookServer")),
 			},
 		},
 		Spec: apps.DeploymentSpec{
 			Replicas: r.bookServer.Spec.Replicas,
-			Selector: &metav1.LabelSelector{
+			Selector: &meta.LabelSelector{
 				MatchLabels: labels,
 			},
-			Template: corev1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
+			Template: core.PodTemplateSpec{
+				ObjectMeta: meta.ObjectMeta{
 					Namespace: r.bookServer.Namespace,
 					Labels:    labels,
 				},
-				Spec: corev1.PodSpec{
-					Containers: []corev1.Container{
+				Spec: core.PodSpec{
+					Containers: []core.Container{
 						{
 							Name:  r.bookServer.Name,
 							Image: r.bookServer.Spec.Container.Image,
-							Ports: []corev1.ContainerPort{
+							Ports: []core.ContainerPort{
 								{
 									Name:          "http",
 									ContainerPort: r.bookServer.Spec.Container.Port,

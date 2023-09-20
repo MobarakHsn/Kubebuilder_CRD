@@ -4,20 +4,20 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.13.0
-  name: mobaraks.crd.github.com
+  name: bookservers.crd.github.com
 spec:
   group: crd.github.com
   names:
-    kind: Mobarak
-    listKind: MobarakList
-    plural: mobaraks
-    singular: mobarak
+    kind: BookServer
+    listKind: BookServerList
+    plural: bookservers
+    singular: bookserver
   scope: Namespaced
   versions:
   - name: v1
     schema:
       openAPIV3Schema:
-        description: Mobarak is the Schema for the mobaraks API
+        description: BookServer is the Schema for the mobaraks API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -32,7 +32,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: MobarakSpec defines the desired state of Mobarak
+            description: BookServerSpec defines the desired state of BookServer
             properties:
               container:
                 description: Container contains Image and Port
@@ -46,22 +46,17 @@ spec:
                 - image
                 - port
                 type: object
-              deploymentName:
+              replicas:
                 description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
                   Important: Run "make" to regenerate code after modifying this file
                   DeploymentName represents the name of the deployment we will create
-                  using CustomCrd'
-                type: string
-              replicas:
-                description: Replicas defines number of pods will be running in the
-                  deployment
+                  using CustomCrd Replicas defines number of pods will be running
+                  in the deployment'
                 format: int32
                 type: integer
               service:
                 description: Service contains ServiceName, ServiceType, ServiceNodePort
                 properties:
-                  serviceName:
-                    type: string
                   serviceNodePort:
                     format: int32
                     type: integer
@@ -72,14 +67,13 @@ spec:
                     type: string
                 required:
                 - servicePort
-                - serviceType
                 type: object
             required:
             - container
             - replicas
             type: object
           status:
-            description: MobarakStatus defines the observed state of Mobarak
+            description: BookServerStatus defines the observed state of BookServer
             properties:
               availableReplicas:
                 format: int32

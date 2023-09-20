@@ -17,7 +17,7 @@ limitations under the License.
 package v1
 
 import (
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -32,7 +32,6 @@ type ContainerSpec struct {
 // ServiceSpec defines the desired state of Service
 type ServiceSpec struct {
 	// +optional
-	ServiceName string `json:"serviceName,omitempty"`
 	ServiceType string `json:"serviceType"`
 	ServicePort int32  `json:"servicePort"`
 	// +optional
@@ -47,8 +46,6 @@ type BookServerSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 	// DeploymentName represents the name of the deployment we will create using CustomCrd
-	// +optional
-	DeploymentName string `json:"deploymentName,omitempty"`
 	// Replicas defines number of pods will be running in the deployment
 	Replicas *int32 `json:"replicas"`
 	// Container contains Image and Port
@@ -72,8 +69,8 @@ type BookServerStatus struct {
 
 // BookServer is the Schema for the mobaraks API
 type BookServer struct {
-	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty"`
+	meta.TypeMeta   `json:",inline"`
+	meta.ObjectMeta `json:"metadata,omitempty"`
 
 	Spec   BookServerSpec   `json:"spec,omitempty"`
 	Status BookServerStatus `json:"status,omitempty"`
@@ -83,9 +80,9 @@ type BookServer struct {
 
 // BookServerList contains a list of BookServer
 type BookServerList struct {
-	metav1.TypeMeta `json:",inline"`
-	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []BookServer `json:"items"`
+	meta.TypeMeta `json:",inline"`
+	meta.ListMeta `json:"metadata,omitempty"`
+	Items         []BookServer `json:"items"`
 }
 
 func init() {

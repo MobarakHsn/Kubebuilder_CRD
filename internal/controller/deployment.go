@@ -8,10 +8,9 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-func (r *BookServerReconciler) EnsureDeployment() (ctrl.Result, error) {
+func (r *BookServerReconciler) EnsureDeployment() error {
 	deployment := &apps.Deployment{}
 
 	if err := r.Client.Get(r.ctx, types.NamespacedName{
@@ -24,13 +23,13 @@ func (r *BookServerReconciler) EnsureDeployment() (ctrl.Result, error) {
 			err := r.Client.Create(r.ctx, deployment)
 			if err != nil {
 				fmt.Printf("Error while creating deployment %s\n", err)
-				return ctrl.Result{}, err
+				return err
 			} else {
 				fmt.Printf("%s Deployments Created...\n", r.bookServer.Name)
 			}
 		} else {
 			fmt.Printf("Error fetching deployment %s\n", err)
-			return ctrl.Result{}, err
+			return err
 		}
 	} else {
 		if r.bookServer.Spec.Replicas != nil && *r.bookServer.Spec.Replicas != *deployment.Spec.Replicas {
@@ -39,12 +38,12 @@ func (r *BookServerReconciler) EnsureDeployment() (ctrl.Result, error) {
 			deployment.Spec.Replicas = r.bookServer.Spec.Replicas
 			if err := r.Client.Update(r.ctx, deployment); err != nil {
 				fmt.Printf("Error updating deployment %s\n", err)
-				return ctrl.Result{}, err
+				return err
 			}
 			fmt.Println("Deployment updated")
 		}
 	}
-	return ctrl.Result{}, nil
+	return nil
 }
 
 func (r *BookServerReconciler) NewDeployment() *apps.Deployment {

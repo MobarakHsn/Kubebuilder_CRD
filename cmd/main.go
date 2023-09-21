@@ -34,6 +34,7 @@ import (
 
 	bookcrdv1 "github.com/MobarakHsn/kubebuilder-crd/api/v1"
 	"github.com/MobarakHsn/kubebuilder-crd/internal/controller"
+	"k8s.io/klog/v2/klogr"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -64,7 +65,7 @@ func main() {
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
 
-	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
+	ctrl.SetLogger(klogr.New())
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,

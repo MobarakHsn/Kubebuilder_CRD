@@ -23,19 +23,16 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// ContainerSpec defines the desired state of Container
-type ContainerSpec struct {
-	Image string `json:"image"`
-	Port  int32  `json:"port"`
-}
+//+kubebuilder:object:root=true
+//+kubebuilder:subresource:status
 
-// ServiceSpec defines the desired state of Service
-type ServiceSpec struct {
-	// +optional
-	ServiceType string `json:"serviceType"`
-	ServicePort int32  `json:"servicePort"`
-	// +optional
-	ServiceNodePort int32 `json:"serviceNodePort,omitempty"`
+// BookServer is the Schema for the mobaraks API
+type BookServer struct {
+	meta.TypeMeta   `json:",inline"`
+	meta.ObjectMeta `json:"metadata,omitempty"`
+
+	Spec   BookServerSpec   `json:"spec,omitempty"`
+	Status BookServerStatus `json:"status,omitempty"`
 }
 
 // BookServerSpec defines the desired state of BookServer
@@ -66,24 +63,27 @@ type BookServerStatus struct {
 }
 
 //+kubebuilder:object:root=true
-//+kubebuilder:subresource:status
-
-// BookServer is the Schema for the mobaraks API
-type BookServer struct {
-	meta.TypeMeta   `json:",inline"`
-	meta.ObjectMeta `json:"metadata,omitempty"`
-
-	Spec   BookServerSpec   `json:"spec,omitempty"`
-	Status BookServerStatus `json:"status,omitempty"`
-}
-
-//+kubebuilder:object:root=true
 
 // BookServerList contains a list of BookServer
 type BookServerList struct {
 	meta.TypeMeta `json:",inline"`
 	meta.ListMeta `json:"metadata,omitempty"`
 	Items         []BookServer `json:"items"`
+}
+
+// ContainerSpec defines the desired state of Container
+type ContainerSpec struct {
+	Image string `json:"image"`
+	Port  int32  `json:"port"`
+}
+
+// ServiceSpec defines the desired state of Service
+type ServiceSpec struct {
+	// +optional
+	ServiceType string `json:"serviceType"`
+	ServicePort int32  `json:"servicePort"`
+	// +optional
+	ServiceNodePort int32 `json:"serviceNodePort,omitempty"`
 }
 
 func init() {

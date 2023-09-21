@@ -8,11 +8,9 @@ import (
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-func (r *BookServerReconciler) EnsureService() (ctrl.Result, error) {
-
+func (r *BookServerReconciler) EnsureService() error {
 	service := &core.Service{}
 	if err := r.Client.Get(r.ctx, types.NamespacedName{
 		Namespace: r.bookServer.Namespace,
@@ -23,16 +21,17 @@ func (r *BookServerReconciler) EnsureService() (ctrl.Result, error) {
 			err := r.Client.Create(r.ctx, r.NewService())
 			if err != nil {
 				fmt.Printf("Error while creating service %s\n", err)
-				return ctrl.Result{}, err
+				return err
 			} else {
 				fmt.Printf("%s Service Created...\n", r.bookServer.Name)
 			}
 		} else {
 			fmt.Printf("Error getting service %s\n", err)
-			return ctrl.Result{}, err
+			return err
 		}
 	}
-	return ctrl.Result{}, nil
+
+	return nil
 }
 
 func (r *BookServerReconciler) NewService() *core.Service {

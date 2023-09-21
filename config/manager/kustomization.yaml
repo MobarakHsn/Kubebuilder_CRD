@@ -5,4 +5,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: mobarak9239/kubebuilder-crd
-  newTag: "1"
+  newTag: 1.1.1

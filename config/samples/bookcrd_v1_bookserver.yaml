@@ -1,21 +1,20 @@
-apiVersion: crd.github.com/v1
-kind: Mobarak
+apiVersion: bookcrd.github.com/v1
+kind: BookServer
 metadata:
   labels:
-    app.kubernetes.io/name: mobarak
-    app.kubernetes.io/instance: mobarak-sample
+    app.kubernetes.io/name: bookserver
+    app.kubernetes.io/instance: bookserver-sample
     app.kubernetes.io/part-of: kubebuilder-crd
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/created-by: kubebuilder-crd
-  name: mobarak-sample1
+  name: bookserver-sample
+  namespace: kubebuilder-test
 spec:
-  deploymentName: api-server1
-  replicas: 4
+  replicas: 1
   container:
     image: "mobarak9239/api-server:latest"
     port: 8081
   service:
-    serviceName: "api-server1"
     serviceType: "NodePort"
     servicePort: 8081
 #    serviceNodePort: 30001

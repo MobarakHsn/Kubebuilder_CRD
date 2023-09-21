@@ -5,9 +5,9 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
-  - crd.github.com
+  - bookcrd.github.com
   resources:
-  - mobaraks
+  - bookservers
   verbs:
   - create
   - delete
@@ -17,40 +17,16 @@ rules:
   - update
   - watch
 - apiGroups:
-  - crd.github.com
+  - bookcrd.github.com
   resources:
-  - mobaraks/finalizers
+  - bookservers/finalizers
   verbs:
   - update
 - apiGroups:
-  - crd.github.com
+  - bookcrd.github.com
   resources:
-  - mobaraks/status
+  - bookservers/status
   verbs:
   - get
   - patch
   - update
-- apiGroups:
-    - core
-  resources:
-    - services
-  verbs:
-    - create
-    - delete
-    - get
-    - list
-    - patch
-    - update
-    - watch
-- apiGroups:
-    - apps
-  resources:
-    - deployment
-  verbs:
-    - create
-    - delete
-    - get
-    - list
-    - patch
-    - update
-    - watch

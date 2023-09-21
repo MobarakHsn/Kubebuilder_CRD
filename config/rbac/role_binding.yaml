@@ -16,4 +16,4 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: controller-manager
-  namespace: kubebuilder-crd-system
+  namespace: system

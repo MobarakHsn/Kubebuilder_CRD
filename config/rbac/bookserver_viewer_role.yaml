@@ -1,31 +1,27 @@
-# permissions for end users to edit mobaraks.
+# permissions for end users to view bookservers.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
     app.kubernetes.io/name: clusterrole
-    app.kubernetes.io/instance: mobarak-editor-role
+    app.kubernetes.io/instance: bookserver-viewer-role
     app.kubernetes.io/component: rbac
     app.kubernetes.io/created-by: kubebuilder-crd
     app.kubernetes.io/part-of: kubebuilder-crd
     app.kubernetes.io/managed-by: kustomize
-  name: mobarak-editor-role
+  name: bookserver-viewer-role
 rules:
 - apiGroups:
-  - crd.github.com
+  - bookcrd.github.com
   resources:
-  - mobaraks
+  - bookservers
   verbs:
-  - create
-  - delete
   - get
   - list
-  - patch
-  - update
   - watch
 - apiGroups:
-  - crd.github.com
+  - bookcrd.github.com
   resources:
-  - mobaraks/status
+  - bookservers/status
   verbs:
   - get

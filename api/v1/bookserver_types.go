@@ -17,11 +17,59 @@ limitations under the License.
 package v1
 
 import (
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
+
+//+kubebuilder:object:root=true
+//+kubebuilder:subresource:status
+
+// BookServer is the Schema for the mobaraks API
+type BookServer struct {
+	meta.TypeMeta   `json:",inline"`
+	meta.ObjectMeta `json:"metadata,omitempty"`
+
+	Spec   BookServerSpec   `json:"spec,omitempty"`
+	Status BookServerStatus `json:"status,omitempty"`
+}
+
+// BookServerSpec defines the desired state of BookServer
+type BookServerSpec struct {
+	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
+	// Important: Run "make" to regenerate code after modifying this file
+	// +optional
+	DeploymentName string `json:"deploymentName,omitempty"`
+	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
+	// Important: Run "make" to regenerate code after modifying this file
+	// DeploymentName represents the name of the deployment we will create using CustomCrd
+	// Replicas defines number of pods will be running in the deployment
+	Replicas *int32 `json:"replicas"`
+	// Container contains Image and Port
+	Container ContainerSpec `json:"container"`
+	// Service contains ServiceName, ServiceType, ServiceNodePort
+	// +optional
+	Service ServiceSpec `json:"service,omitempty"`
+}
+
+// BookServerStatus defines the observed state of BookServer
+type BookServerStatus struct {
+	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
+	// Important: Run "make" to regenerate code after modifying this file
+
+	// +optional
+	AvailableReplicas *int32 `json:"availableReplicas,omitempty"`
+}
+
+//+kubebuilder:object:root=true
+
+// BookServerList contains a list of BookServer
+type BookServerList struct {
+	meta.TypeMeta `json:",inline"`
+	meta.ListMeta `json:"metadata,omitempty"`
+	Items         []BookServer `json:"items"`
+}
 
 // ContainerSpec defines the desired state of Container
 type ContainerSpec struct {
@@ -32,62 +80,12 @@ type ContainerSpec struct {
 // ServiceSpec defines the desired state of Service
 type ServiceSpec struct {
 	// +optional
-	ServiceName string `json:"serviceName,omitempty"`
 	ServiceType string `json:"serviceType"`
 	ServicePort int32  `json:"servicePort"`
 	// +optional
 	ServiceNodePort int32 `json:"serviceNodePort,omitempty"`
 }
 
-// MobarakSpec defines the desired state of Mobarak
-type MobarakSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-	// DeploymentName represents the name of the deployment we will create using CustomCrd
-	// +optional
-	DeploymentName string `json:"deploymentName,omitempty"`
-	// Replicas defines number of pods will be running in the deployment
-	Replicas *int32 `json:"replicas"`
-	// Container contains Image and Port
-	Container ContainerSpec `json:"container"`
-	// Service contains ServiceName, ServiceType, ServiceNodePort
-	// +optional
-	Service ServiceSpec `json:"service,omitempty"`
-}
-
-// MobarakStatus defines the observed state of Mobarak
-type MobarakStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
-	// +optional
-	AvailableReplicas *int32 `json:"availableReplicas,omitempty"`
-}
-
-//+kubebuilder:object:root=true
-//+kubebuilder:subresource:status
-
-// Mobarak is the Schema for the mobaraks API
-type Mobarak struct {
-	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty"`
-
-	Spec   MobarakSpec   `json:"spec,omitempty"`
-	Status MobarakStatus `json:"status,omitempty"`
-}
-
-//+kubebuilder:object:root=true
-
-// MobarakList contains a list of Mobarak
-type MobarakList struct {
-	metav1.TypeMeta `json:",inline"`
-	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Mobarak `json:"items"`
-}
-
 func init() {
-	SchemeBuilder.Register(&Mobarak{}, &MobarakList{})
+	SchemeBuilder.Register(&BookServer{}, &BookServerList{})
 }

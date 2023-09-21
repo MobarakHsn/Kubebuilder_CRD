@@ -17,16 +17,16 @@ func (r *BookServerReconciler) EnsureService() error {
 		Name:      r.bookServer.ServiceName(),
 	}, service); err != nil {
 		if errors.IsNotFound(err) {
-			fmt.Println("Could not find existing service for ", r.bookServer.Name, ", creating one...")
+			r.Log.Info(fmt.Sprintf("Could not find existing service for %s  creating one...", r.bookServer.Name))
 			err := r.Client.Create(r.ctx, r.NewService())
 			if err != nil {
-				fmt.Printf("Error while creating service %s\n", err)
+				r.Log.Error(err, "Error while creating service")
 				return err
 			} else {
-				fmt.Printf("%s Service Created...\n", r.bookServer.Name)
+				r.Log.Info(fmt.Sprintf("%s Service Created...", r.bookServer.Name))
 			}
 		} else {
-			fmt.Printf("Error getting service %s\n", err)
+			r.Log.Error(err, "Error fetching service")
 			return err
 		}
 	}

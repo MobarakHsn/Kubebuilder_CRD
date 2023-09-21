@@ -56,7 +56,7 @@ func (r *BookServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	// get bookserver and ensure it exists
 	bookServer := &bookserverapi.BookServer{}
 	if err := r.Client.Get(ctx, req.NamespacedName, bookServer); err != nil {
-		r.Log.Error(err, fmt.Sprintf("Unable to Get BookServer %s/%s\n", req.Namespace, req.Name))
+		r.Log.Error(err, fmt.Sprintf("Unable to Get BookServer %s/%s", req.Namespace, req.Name))
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 	if bookServer.Spec.DeploymentName != bookServer.DeploymentName() {
@@ -64,11 +64,11 @@ func (r *BookServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		if err := r.Client.Update(ctx, bookServer); err != nil {
 			return ctrl.Result{}, err
 		}
-		fmt.Println("Book server updated")
+		r.Log.Info("Book server updated")
 	}
 
+	r.Log.Info(fmt.Sprintf("BookServer fetched %v", req.NamespacedName))
 	r.bookServer = bookServer
-	fmt.Println("BookServer fetched", req.NamespacedName)
 	if err := r.EnsureDeployment(); err != nil {
 		return ctrl.Result{}, err
 	}

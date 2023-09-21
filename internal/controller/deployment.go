@@ -18,29 +18,29 @@ func (r *BookServerReconciler) EnsureDeployment() error {
 		Name:      r.bookServer.DeploymentName(),
 	}, deployment); err != nil {
 		if errors.IsNotFound(err) {
-			fmt.Println("Could not find existing deployment for ", r.bookServer.Name, ", creating one...")
+			r.Log.Info(fmt.Sprintf("Could not find existing deployment for %s  creating one...", r.bookServer.Name))
 			deployment = r.NewDeployment()
 			err := r.Client.Create(r.ctx, deployment)
 			if err != nil {
-				fmt.Printf("Error while creating deployment %s\n", err)
+				r.Log.Error(err, "Error while creating deployment")
 				return err
 			} else {
-				fmt.Printf("%s Deployments Created...\n", r.bookServer.Name)
+				r.Log.Info(fmt.Sprintf("%s Deployment Created...", r.bookServer.Name))
 			}
 		} else {
-			fmt.Printf("Error fetching deployment %s\n", err)
+			r.Log.Error(err, "Error fetching deployment")
 			return err
 		}
 	} else {
 		if r.bookServer.Spec.Replicas != nil && *r.bookServer.Spec.Replicas != *deployment.Spec.Replicas {
-			fmt.Println(*r.bookServer.Spec.Replicas, *deployment.Spec.Replicas)
-			fmt.Println("Deployment replica miss match.....updating")
+			r.Log.Info(fmt.Sprintf("%v %v", *r.bookServer.Spec.Replicas, *deployment.Spec.Replicas))
+			r.Log.Info("Deployment replica miss match.....updating")
 			deployment.Spec.Replicas = r.bookServer.Spec.Replicas
 			if err := r.Client.Update(r.ctx, deployment); err != nil {
-				fmt.Printf("Error updating deployment %s\n", err)
+				r.Log.Error(err, "Error updating deployment")
 				return err
 			}
-			fmt.Println("Deployment updated")
+			r.Log.Info("Deployment updated\n")
 		}
 	}
 	return nil

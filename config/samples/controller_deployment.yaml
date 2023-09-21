@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
         - name: bookserver-controller
-          image: mobarak9239/kubebuilder-crd:1.1.0
+          image: mobarak9239/kubebuilder-crd:1.1.1
           ports:
             - containerPort: 8083
